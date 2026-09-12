@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buy or Wait? — AI Financial Decision Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --bg-card: rgba(18, 24, 38, 0.75);
+      --bg-card-hover: rgba(28, 36, 56, 0.85);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(99, 102, 241, 0.5);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #6366f1;
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+      --emerald: #10b981;
+      --emerald-bg: rgba(16, 185, 129, 0.12);
+      --amber: #f59e0b;
+      --amber-bg: rgba(245, 158, 11, 0.12);
+      --blue: #3b82f6;
+      --blue-bg: rgba(59, 130, 246, 0.12);
+      --rose: #f43f5e;
+      --rose-bg: rgba(244, 63, 94, 0.12);
+      --radius: 16px;
+      --radius-sm: 8px;
+      --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 20%, rgba(236, 72, 153, 0.12) 0%, transparent 35%),
+        radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+      background-attachment: fixed;
+    }
+
+    header {
+      padding: 2.5rem 2rem 1.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: var(--accent-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 25px rgba(99, 102, 241, 0.4);
+      font-size: 1.5rem;
+    }
+
+    .brand-text h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-text p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .badge-pill {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      padding: 0.4rem 0.9rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* KPIs */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .kpi-card:hover, .kpi-card.active {
+      transform: translateY(-4px);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: var(--shadow);
+    }
+
+    .kpi-card.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent-gradient);
+    }
+
+    .kpi-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .kpi-value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .kpi-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* Filters & Controls */
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 260px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.7rem 1rem 0.7rem 2.4rem;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-box input:focus {
+      border-color: var(--border-focus);
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 0.8rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      width: 16px;
+      height: 16px;
+    }
+
+    .filter-chips {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.45rem 0.9rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .chip:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+    }
+
+    .chip.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    }
+
+    /* Grid & Cards */
+    .requests-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .req-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .req-card:hover {
+      transform: translateY(-3px);
+      background: var(--bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow: var(--shadow);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.8rem;
+    }
+
+    .req-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #818cf8;
+    }
+
+    .user-pill {
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      color: var(--text-muted);
+      margin-left: 0.5rem;
+    }
+
+    /* Status Pills */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.3rem 0.65rem;
+      border-radius: 9999px;
+    }
+
+    .status-affordable_now {
+      background: var(--emerald-bg);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-affordable_with_plan {
+      background: var(--blue-bg);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .status-affordable_later {
+      background: var(--amber-bg);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .status-not_affordable {
+      background: var(--rose-bg);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .request-text {
+      font-size: 0.95rem;
+      font-weight: 500;
+      line-height: 1.45;
+      margin-bottom: 1rem;
+      color: #e5e7eb;
+    }
+
+    .financial-details {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: var(--radius-sm);
+      padding: 0.8rem;
+      margin-bottom: 1rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .f-item .f-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .f-item .f-val {
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .card-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .method-tag {
+      font-weight: 600;
+      color: #cbd5e1;
+      text-transform: capitalize;
+    }
+
+    /* Modal / Drawer */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      padding: 1.5rem;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal {
+      background: #111726;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      max-width: 720px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      transform: scale(0.95);
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .modal-overlay.open .modal {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      padding: 1.5rem 1.8rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      background: #111726;
+      z-index: 10;
+    }
+
+    .close-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: var(--text-muted);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.2s;
+    }
+
+    .close-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+    }
+
+    .modal-body {
+      padding: 1.8rem;
+    }
+
+    .decision-banner {
+      border-radius: var(--radius-sm);
+      padding: 1.2rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .explanation-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.2rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .plan-item {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+    }
+
+    .plan-item .p-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .plan-item .p-val {
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 0.25rem;
+    }
+
+    .options-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .options-table th, .options-table td {
+      padding: 0.7rem 0.8rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .options-table th {
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+    }
+
+    .loading-spinner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 5rem 0;
+      gap: 1rem;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(99, 102, 241, 0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="logo-icon">⚖️</div>
+      <div class="brand-text">
+        <h1>Buy or Wait?</h1>
+        <p>AI Financial Decision Engine & Cash Flow Intelligence</p>
+      </div>
+    </div>
+    <div class="badge-pill">
+      <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block;"></span>
+      Deterministic Forecast Active (250 Requests)
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- KPIs -->
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="kpi-card active" onclick="filterByStatus('all')">
+        <div class="kpi-title">Total Requests</div>
+        <div class="kpi-value" id="totalRequests">250</div>
+        <div class="kpi-desc">Full evaluation set</div>
+      </div>
+      <div class="kpi-card" onclick="filterByStatus('affordable_now')">
+        <div class="kpi-title" style="color: #34d399;">Affordable Now</div>
+        <div class="kpi-value" id="kpiNow" style="color: #34d399;">54</div>
+        <div class="kpi-desc">Safe to pay in full today</div>
+      </div>
+      <div class="kpi-card" onclick="filterByStatus('affordable_with_plan')">
+        <div class="kpi-title" style="color: #60a5fa;">Affordable with Plan</div>
+        <div class="kpi-value" id="kpiPlan" style="color: #60a5fa;">50</div>
+        <div class="kpi-desc">Installments & partial schedules</div>
+      </div>
+      <div class="kpi-card" onclick="filterByStatus('affordable_later')">
+        <div class="kpi-title" style="color: #fbbf24;">Affordable Later</div>
+        <div class="kpi-value" id="kpiLater" style="color: #fbbf24;">43</div>
+        <div class="kpi-desc">Wait for scheduled income</div>
+      </div>
+      <div class="kpi-card" onclick="filterByStatus('not_affordable')">
+        <div class="kpi-title" style="color: #fb7185;">Not Affordable</div>
+        <div class="kpi-value" id="kpiNot" style="color: #fb7185;">103</div>
+        <div class="kpi-desc">Violates minimum balance</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-bar">
+      <div class="search-box">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input type="text" id="searchInput" placeholder="Search by request ID, user, purchase item...">
+      </div>
+      <div class="filter-chips">
+        <button class="chip active" onclick="filterByStatus('all')">All</button>
+        <button class="chip" onclick="filterByStatus('affordable_now')">Affordable Now</button>
+        <button class="chip" onclick="filterByStatus('affordable_with_plan')">With Plan</button>
+        <button class="chip" onclick="filterByStatus('affordable_later')">Wait</button>
+        <button class="chip" onclick="filterByStatus('not_affordable')">Not Affordable</button>
+      </div>
+    </div>
+
+    <!-- Grid of Requests -->
+    <div id="requestsGrid" class="requests-grid">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Loading financial models & decisions...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inspection Modal -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <span id="modalReqId" style="font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; color: #818cf8;"></span>
+          <span id="modalUserId" class="user-pill"></span>
+        </div>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allRequests = [];
+    let currentFilter = 'all';
+    let searchQuery = '';
+
+    // Load data from web_data.json
+    async function loadData() {
+      try {
+        const response = await fetch('web_data.json');
+        const data = await response.json();
+        allRequests = data.requests;
+        renderKPIs(data.stats);
+        renderRequests();
+      } catch (err) {
+        console.error('Error loading web_data.json:', err);
+        document.getElementById('requestsGrid').innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1rem;">
+            <p style="color: #fb7185; font-size: 1.1rem; font-weight: 600;">Failed to load web_data.json</p>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">Please make sure web_data.json exists and is served.</p>
+          </div>
+        `;
+      }
+    }
+
+    function renderKPIs(stats) {
+      if (!stats) return;
+      document.getElementById('totalRequests').textContent = stats.total;
+      document.getElementById('kpiNow').textContent = stats.affordability['affordable_now'] || 0;
+      document.getElementById('kpiPlan').textContent = stats.affordability['affordable_with_plan'] || 0;
+      document.getElementById('kpiLater').textContent = stats.affordability['affordable_later'] || 0;
+      document.getElementById('kpiNot').textContent = stats.affordability['not_affordable'] || 0;
+    }
+
+    function filterByStatus(status) {
+      currentFilter = status;
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.kpi-card').forEach(k => k.classList.remove('active'));
+      
+      const chipMap = {
+        'all': 0, 'affordable_now': 1, 'affordable_with_plan': 2, 'affordable_later': 3, 'not_affordable': 4
+      };
+      const chips = document.querySelectorAll('.chip');
+      if (chips[chipMap[status]]) chips[chipMap[status]].classList.add('active');
+      const kpis = document.querySelectorAll('.kpi-card');
+      if (kpis[chipMap[status]]) kpis[chipMap[status]].classList.add('active');
+
+      renderRequests();
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      searchQuery = e.target.value.toLowerCase().trim();
+      renderRequests();
+    });
+
+    function renderRequests() {
+      const grid = document.getElementById('requestsGrid');
+      const filtered = allRequests.filter(req => {
+        const matchesStatus = currentFilter === 'all' || req.affordability_status === currentFilter;
+        const matchesSearch = !searchQuery || 
+          req.request_id.toLowerCase().includes(searchQuery) ||
+          req.user_id.toLowerCase().includes(searchQuery) ||
+          req.request_text.toLowerCase().includes(searchQuery) ||
+          req.request_type.toLowerCase().includes(searchQuery);
+        return matchesStatus && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
+            <p style="font-size: 1.1rem;">No matching requests found.</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(req => {
+        const statusClass = `status-${req.affordability_status}`;
+        const statusLabel = req.affordability_status.replace(/_/g, ' ');
+        const amountFmt = formatCurrency(req.requested_amount, req.currency);
+        const safeFmt = formatCurrency(req.amount_safe_to_pay, req.currency);
+
+        return `
+          <div class="req-card" onclick="openDetails('${req.request_id}')">
+            <div>
+              <div class="card-header">
+                <div>
+                  <span class="req-id">${req.request_id}</span>
+                  <span class="user-pill">${req.user_id}</span>
+                </div>
+                <span class="status-badge ${statusClass}">${statusLabel}</span>
+              </div>
+              <div class="request-text">${escapeHtml(req.request_text)}</div>
+              <div class="financial-details">
+                <div class="f-item">
+                  <div class="f-label">Requested</div>
+                  <div class="f-val">${amountFmt}</div>
+                </div>
+                <div class="f-item">
+                  <div class="f-label">Safe to Pay</div>
+                  <div class="f-val" style="color: ${Number(req.amount_safe_to_pay) > 0 ? '#34d399' : '#9ca3af'};">${safeFmt}</div>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer">
+              <span>Method: <strong class="method-tag">${req.recommended_payment_method.replace(/_/g, ' ')}</strong></span>
+              <span>${req.request_date}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function formatCurrency(val, curr) {
+      const num = Number(val);
+      if (isNaN(num)) return `${val} ${curr}`;
+      return `${num.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${curr}`;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function openDetails(reqId) {
+      const req = allRequests.find(r => r.request_id === reqId);
+      if (!req) return;
+
+      document.getElementById('modalReqId').textContent = req.request_id;
+      document.getElementById('modalUserId').textContent = `${req.user_id} (${req.profile.home_currency})`;
+
+      const statusClass = `status-${req.affordability_status}`;
+      const statusLabel = req.affordability_status.replace(/_/g, ' ');
+      const prof = req.profile;
+
+      let paymentPlanHtml = 'None';
+      if (req.payment_plan && req.payment_plan !== 'none') {
+        paymentPlanHtml = req.payment_plan.split('|').map(p => {
+          const [d, a] = p.split(':');
+          return `<span style="display:inline-block; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); padding: 0.2rem 0.6rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem; margin: 0.2rem 0.4rem 0.2rem 0;">${d}: ${formatCurrency(a, req.currency)}</span>`;
+        }).join('');
+      }
+
+      let optionsTableHtml = '<p style="color: var(--text-muted); font-size: 0.85rem;">No vendor options provided.</p>';
+      if (req.payment_options && req.payment_options.length > 0) {
+        optionsTableHtml = `
+          <table class="options-table">
+            <thead>
+              <tr>
+                <th>Option</th>
+                <th>Method</th>
+                <th>Per Payment</th>
+                <th>Payments</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${req.payment_options.map(o => `
+                <tr>
+                  <td style="font-family: monospace; color: #818cf8;">${o.payment_option_id}</td>
+                  <td style="text-transform: capitalize;">${o.payment_method.replace(/_/g, ' ')}</td>
+                  <td style="font-family: monospace;">${formatCurrency(o.payment_amount, req.currency)}</td>
+                  <td>${o.number_of_payments}</td>
+                  <td style="font-family: monospace; font-weight: 600;">${formatCurrency(o.total_payable_amount, req.currency)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+
+      document.getElementById('modalBody').innerHTML = `
+        <div class="decision-banner ${statusClass}" style="margin-bottom: 1.5rem;">
+          <div>
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8;">Recommendation</div>
+            <div style="font-size: 1.3rem; font-weight: 800; text-transform: uppercase; margin-top: 0.2rem;">${statusLabel}</div>
+            <div style="font-size: 0.9rem; font-weight: 600; margin-top: 0.2rem;">Recommended Method: ${req.recommended_payment_method.replace(/_/g, ' ')}</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; opacity: 0.8;">Safe Today</div>
+            <div style="font-size: 1.4rem; font-weight: 800; font-family: monospace;">${formatCurrency(req.amount_safe_to_pay, req.currency)}</div>
+          </div>
+        </div>
+
+        <div class="section-title">Decision Explanation</div>
+        <div class="explanation-box">${escapeHtml(req.decision_explanation)}</div>
+
+        <div class="section-title">Financial Profile & Constraints</div>
+        <div class="plan-grid">
+          <div class="plan-item">
+            <div class="p-label">Current Balance</div>
+            <div class="p-val">${formatCurrency(prof.current_balance, prof.home_currency)}</div>
+          </div>
+          <div class="plan-item">
+            <div class="p-label">Minimum Balance to Keep</div>
+            <div class="p-val" style="color: #fb7185;">${formatCurrency(prof.minimum_balance_to_keep, prof.home_currency)}</div>
+          </div>
+          <div class="plan-item">
+            <div class="p-label">Earliest Full Payment Date</div>
+            <div class="p-val" style="font-size: 0.95rem; color: #60a5fa;">${req.earliest_date_for_full_payment || 'N/A in horizon'}</div>
+          </div>
+          <div class="plan-item">
+            <div class="p-label">Spending Changes Needed</div>
+            <div class="p-val" style="font-size: 0.9rem; font-family: sans-serif;">${req.spending_changes_needed || 'none'}</div>
+          </div>
+        </div>
+
+        <div class="section-title">Payment Plan Schedule</div>
+        <div style="margin-bottom: 1.5rem;">${paymentPlanHtml}</div>
+
+        <div class="section-title">Seller / Provider Payment Options</div>
+        <div>${optionsTableHtml}</div>
+      `;
+
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    function closeModal(e) {
+      if (!e || e.target.id === 'modalOverlay' || e.target.classList.contains('close-btn')) {
+        document.getElementById('modalOverlay').classList.remove('open');
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Initialize
+    loadData();
+  </script>
+</body>
+</html>
