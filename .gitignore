@@ -1,0 +1,6 @@
+log.txt
+.venv/
+__pycache__/
+*.pyc
+crop_*.png
+scripts/
