@@ -577,6 +577,9 @@ class FinancialDecisionAgent:
         print(f"Generated predictions for {len(out_df)} requests to {output_file}")
         return out_df
 
-if __name__ == '__main__':
+def main(output_file='output.csv'):
     agent = FinancialDecisionAgent(data_dir='dataset')
-    agent.run_all(output_file='output.csv')
+    return agent.run_all(output_file=output_file)
+
+if __name__ == '__main__':
+    main()
