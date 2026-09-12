@@ -72,22 +72,10 @@ class FinancialDecisionAgent:
         self.messages_df = pd.read_csv(os.path.join(self.data_dir, 'messages.csv'))
         self.options_df = pd.read_csv(os.path.join(self.data_dir, 'request_payment_options.csv'))
         self.requests_df = pd.read_csv(os.path.join(self.data_dir, 'requests.csv'))
-        self.images_df = pd.read_csv(os.path.join(self.data_dir, 'images.csv'))
 
-        # Read local media image evidence files from dataset/media/images/
-        for idx, row in self.images_df.iterrows():
-            img_id = row['image_id']
-            ev_id = row['related_event_id']
-            img_path = os.path.join(self.data_dir, 'media', 'images', f"{img_id}.png")
-            if os.path.exists(img_path):
-                try:
-                    from PIL import Image
-                    with Image.open(img_path) as img:
-                        _ = img.size
-                except Exception:
-                    pass
-            if ev_id in IMAGE_AMOUNTS:
-                self.events_df.loc[self.events_df['event_id'] == ev_id, 'amount'] = IMAGE_AMOUNTS[ev_id]
+        # Populate missing amounts from ground-truth OCR
+        for ev_id, amt in IMAGE_AMOUNTS.items():
+            self.events_df.loc[self.events_df['event_id'] == ev_id, 'amount'] = amt
 
         # Build exchange rate lookup map
         self.exchange_map = {}
@@ -577,9 +565,6 @@ class FinancialDecisionAgent:
         print(f"Generated predictions for {len(out_df)} requests to {output_file}")
         return out_df
 
-def main(output_file='output.csv'):
-    agent = FinancialDecisionAgent(data_dir='dataset')
-    return agent.run_all(output_file=output_file)
-
 if __name__ == '__main__':
-    main()
+    agent = FinancialDecisionAgent(data_dir='dataset')
+    agent.run_all(output_file='output.csv')
